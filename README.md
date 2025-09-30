@@ -10,6 +10,26 @@ The original QuickBASIC source, interface, and project files can be found in the
 ![Image file containing pixel-based game sprites.](ORIGINAL/DATA.GIF)  
 *The pixel-based game sprite art was created using [MGI PhotoSuite 8.0](https://archive.org/details/mgi-photo-suitev-8-win-content-1997).*
 
+## Build Requirements and Instructions
+
+A straightforward way to compile the files found in the directory `ORIGINAL` is by running [QuickBASIC](https://en.wikipedia.org/wiki/QuickBASIC) 4.5 on [DOSBox](https://en.wikipedia.org/wiki/DOSBox). The below QuickBASIC 4.5 files are required but are not included in this repository. This build process has been tested with **DOSBox 0.74-3** and **QuickBASIC 4.50**.
+
+* `BCOM45.LIB` (Version 4.50)
+* `BRUN45.LIB` (Version 4.50)
+* `LIB.EXE` (Version 3.14)
+* `BC.EXE` (Version 4.50)
+* `LINK.EXE` (Version 3.69)
+* `QB.BI` (Version 4.50)
+
+Assuming that the above are found within the directory `ORIGINAL`, the `MAKE.BAT` script can be used to build an executable called `MAIN.EXE`. **Note that the build script is case-sensitive**.
+```shell
+MAKE BUILD
+```
+The game can be played by running `MAIN.EXE`. The script can also be used to clear all files generated during the build process.
+```shell
+MAKE CLEAN
+```
+
 ## Acknowledgments
 
 This repository contains some source code snippets and library files obtained from third parties at the time the project was first authored. This section enumerates all known instances of such, but exact information about their origins may not be available at this time. Any additional information or suggestions about the below are welcome.
