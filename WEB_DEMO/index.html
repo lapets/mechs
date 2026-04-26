@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Mechs 2001</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta charset="UTF-8">
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/rivets/0.9.6/rivets.bundled.min.js"></script>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/css/toastr.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/file-saver@2.0.2/dist/FileSaver.min.js"></script> 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/nipplejs/0.10.0/nipplejs.min.js"></script>
+  </head>
+  <style>
+    body { background-color:#000000 };
+    .divTouchSurface { color: lightgray; }
+    input[type="file"] { display: none; }
+    .progress { height: 2rem; font-size: 1rem; }
+    .settingsTitle { vertical-align: top; padding-top: 10px; }
+    .lightpurple { background-color: rgb(189, 174, 173); }
+    .darkpurple { background-color:rgb(238, 21, 21); background-color:rgb(199, 199, 230); }
+    .buttonhold { background-color:lightsalmon; }
+  </style>
+  <body>
+    <div id="maindiv" class="container text-center">
+      <div id="topPanel" style="display: none;">
+        <div rv-if="data.beforeEmulatorStarted">
+          <div class="mt-2 mb-2" rv-if="data.message"><div rv-html="data.message"></div></div>
+          <div class="mt-2 mb-2" rv-if="data.loading">
+            <i class="fa fa-refresh fa-spin" style="font-size:14px;margin-right:0.5em;"></i>
+            Loading...
+          </div>
+          <div class="progress mt-4" id="progressOuter" rv-if="data.showProgress">
+            <div class="progress-bar bg-info" role="progressbar" id="myProgress">1%</div>
+          </div>
+          <input id="file-upload" type="file" multiple />
+        </div>
+
+        <div style="display: inline;" rv-hide="data.beforeEmulatorStarted" id="afterLoadDiv">
+          <div class="mt-2 mb-2" rv-if="data.message">
+            <div rv-html="data.message">
+            </div>
+          </div>
+          <div style="height:120px;"></div>
+        </div>
+      </div>
+      <div style="display: none;" id="errorOuter">
+        <div rv-if="data.lblError" class="alert alert-danger mt-4" id="lblError" role="alert" rv-html="data.lblError">
+        </div>
+      </div>
+      <input id="file-import" type="file" multiple />
+    </div>
+
+    <div id="canvasDiv" class="mt-2 mb-4" style="height:480px; text-align:center; margin-left:auto; margin-right:auto; display:none;">
+      <canvas id="canvas" width="640" height="480" style="height: 100%;" ></canvas>
+    </div>
+
+    <div id="divInstructions" class="container text-center" style="display: none;"></div>
+    <div class="modal fade" id="settingsModal" tabindex="-1" role="dialog" aria-labelledby="settingsModalLabel" aria-hidden="true"></div>
+    <div class="modal fade" id="exportModal" tabindex="-1" role="dialog" aria-labelledby="exportModalLabel" aria-hidden="true"></div>
+    <div class="modal fade" id="importModal" tabindex="-1" role="dialog" aria-labelledby="importModalLabel" aria-hidden="true"></div>
+    <div id="mobileButtons" class="mobileButtons" style="display: none;text-align: center; padding-top: 20px;padding-bottom: 20px;"></div>
+    <div id="mobileDiv" style="display: none;height: 100%;"></div>
+    <div class="modal fade" id="loginModal" tabindex="-1" role="dialog" aria-labelledby="loginModalLabel" aria-hidden="true"></div>
+
+    <script type="text/javascript">
+      var script = document.createElement('script');
+      script.src = 'romlist.js';
+      document.getElementsByTagName('head')[0].appendChild(script);
+      script.onload = () => {
+        var script2 = document.createElement('script');
+        script2.src = 'settings.js';
+        document.getElementsByTagName('head')[0].appendChild(script2);
+      }
+
+      async function autoLoadMechs() {
+        const fileName = "mechs.zip";
+
+        myClass.Run();
+        myClass.rivetsData.showProgress = true;
+
+        try {
+          console.log("Fetching " + fileName + "...");
+          const response = await fetch(fileName);
+          if (!response.ok) {
+            throw new Error("Could not find " + fileName + " on server.");
+          }
+          
+          const blob = await response.blob();
+
+          myClass.detectSingleFileUpload(fileName);
+          myClass.rom_name = fileName;
+          myClass.extractBaseName();
+
+          var reader = new FileReader();
+          reader.onprogress = function (event) {
+            myClass.handleProgress(event, { size: blob.size });
+          };
+          reader.onload = function (e) {
+            console.log('finished loading ' + fileName);
+            var byteArray = new Uint8Array(this.result);
+            myClass.LoadEmulator(byteArray);
+          };
+          reader.readAsArrayBuffer(blob);
+        } catch (err) {
+          console.error("Auto-load failed:", err);
+          if (myClass.rivetsData) {
+            myClass.rivetsData.lblError = "Error loading " + fileName + ": " + err.message;
+          }
+        }
+      }
+
+      window.addEventListener('load', () => {
+        setTimeout(() => {
+          autoLoadMechs();
+          myApp.zoomIn(200);
+        }, 500);
+      });
+    </script>
+  </body>
+</html>
